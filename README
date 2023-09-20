@@ -1,0 +1,9 @@
+I'm trying to make an archive format like tar.
+
+TODO:
+- Produce an archive file.
+- Extract an automatically produced archive file.
+- Make a better readme.
+- After achieving the previous goals, rewrite the code in Rust and have equivalent sources in both languages.
+
+idk what im doing i couldnt even understand what tar has in its files
