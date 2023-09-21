@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define VERSION_CURRENT 0
 #define FILENAME_MAX 4096
 
 static inline void assert(size_t);
@@ -56,10 +57,22 @@ log2_ceil(size_t num)
 		return 3;
 	else if (num <= 16)
 		return 4;
+	else if (num <= 32)
+		return 5;
 	else {
-		(void)fprintf(stderr, "log2_ceil: TODO");
+		(void)fprintf(stderr, "log2_ceil: TODO\n");
 		exit(-1);
 	}
+}
+
+static size_t
+sizebyte_from(uint8_t byte)
+{
+	if (byte == 0) {
+		return 0;
+	}
+	byte -= 1;
+	return 1 << byte;
 }
 
 static uint8_t
@@ -74,28 +87,30 @@ sizebyte_to(size_t sz)
 static size_t
 strnlen(const char *s, size_t maxlen)
 {
-	return strlen(s);
+	const char *p = memchr(s, 0, maxlen);
+	return p ? (size_t)(p - s) : maxlen;
 }
 
 int32_t
 main(void)
 {
+	FILE *archive_file;
 	const char *archive_path = "./archive1.bar";
-	const char *file_correspondences[] = { "a.txt", NULL };
-	const char *filelist[] = { "./misc/a.txt", NULL };
+	const char *file_correspondences[] = { "a.txt", "b.txt", NULL };
+	const char *filelist[] = { "./misc/a.txt", "./misc/b.txt", NULL };
 	size_t file_count;
 	size_t filelist_bufsize;
 	for (file_count = 0; filelist[file_count]; ++file_count){}
 	/* I should probably check if the archive path already exists. */
 	{ /* Scoping for archive_file. */
-	FILE *archive_file = fopen(archive_path, "w");
+	archive_file = fopen(archive_path, "w");
 	chkz((size_t)archive_file);
 
 	{
 		size_t a = fwrite("bar", 1, 3, archive_file);
 		assert(a == 3);
-		a = (size_t)fputc(0, archive_file);
-		assert(a == 0);
+		a = (size_t)fputc(VERSION_CURRENT, archive_file);
+		assert(a == VERSION_CURRENT);
 	}
 
 	filelist_bufsize = 0;
@@ -128,6 +143,82 @@ main(void)
 	}
 
 	free(filelist_buf);
+	}
+
+	for (size_t i = 0; i < file_count; ++i) {
+		uint8_t *entry_buf;
+		size_t entrybuf_size;
+		uint8_t entrybuf_sizebyte;
+		FILE *file;
+		uint8_t *file_buf;
+		size_t file_size;
+		size_t filebuf_size;
+		uint8_t filebuf_sizebyte;
+		uint8_t *header_buf;
+		size_t headerbuf_size;
+		uint8_t headerbuf_sizebyte;
+		size_t writerhead;
+		file = fopen(filelist[i], "r");
+		chkz((size_t)file);
+
+		chknz((size_t)fseek(file, 0, SEEK_END));
+		{
+			long a = ftell(file);
+			assert(a != -1);
+			file_size = (size_t)a;
+		}
+		rewind(file);
+
+		/* Make the header buffer. */
+		headerbuf_sizebyte = 0;
+		headerbuf_size = sizebyte_from(headerbuf_sizebyte) + 1;
+		header_buf = calloc(headerbuf_size, 1);
+		chkz((size_t)header_buf);
+		header_buf[0] = headerbuf_sizebyte;
+		/*
+		 * Since I still haven't figured out what to include in the file
+		 * headers, the only space I give for the header is the solitary
+		 * size byte saying that the header buffer is 0 in size.
+		 * TODO: Make an actual header.
+		 */
+		/* Make the file buffer. */
+		writerhead = 0;
+		filebuf_sizebyte = sizebyte_to(file_size);
+		filebuf_size = sizebyte_from(filebuf_sizebyte) + 1;
+		file_buf = calloc(filebuf_size, 1);
+		chkz((size_t)file_buf);
+		file_buf[0] = filebuf_sizebyte;
+		writerhead += 1;
+		{
+			size_t a = fread(file_buf + writerhead, 1, file_size, file);
+			assert(a == file_size);
+		}
+		/* Merge them in an entry buffer. */
+		writerhead = 0;
+		entrybuf_sizebyte = sizebyte_to(headerbuf_size + filebuf_size);
+		entrybuf_size = sizebyte_from(entrybuf_sizebyte) + 1;
+		entry_buf = calloc(entrybuf_size, 1);
+		chkz((size_t)entry_buf);
+		entry_buf[0] = entrybuf_sizebyte;
+		writerhead += 1;
+		{
+		void *a;
+		a = memcpy(entry_buf + writerhead, header_buf, headerbuf_size);
+		assert(a == entry_buf + writerhead);
+		writerhead += headerbuf_size;
+		a = memcpy(entry_buf + writerhead, file_buf, filebuf_size);
+		assert(a == entry_buf + writerhead);
+		}
+		free(header_buf);
+		free(file_buf);
+		/* Write the entry buffer to the archive file. */
+		{
+		size_t a = fwrite(entry_buf, 1, entrybuf_size, archive_file);
+		assert(a == entrybuf_size);
+		}
+		free(entry_buf);
+
+		(void)fclose(file);
 	}
 
 	(void)fclose(archive_file);

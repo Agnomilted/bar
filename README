@@ -1,7 +1,8 @@
 I'm trying to make an archive format like tar.
 
 TODO:
-- Produce an archive file.
+- Produce a complete archive file.
+    - Figure out what to store in the header part of file entries 
 - Extract an automatically produced archive file.
 - Make a better readme.
 - After achieving the previous goals, rewrite the code in Rust and have equivalent sources in both languages.
