@@ -7,14 +7,16 @@
 #define VERSION_CURRENT 0
 #define FILENAME_MAX 4096
 
+static void        archive_create(const char*, const char**, const char**, size_t);
+/* Out of order in the definitions because it's practically a main function. */
 static inline void assert(size_t);
 static inline void chknz(size_t);
 static inline void chkz(size_t);
-static uint8_t log2_ceil(size_t);
+static uint8_t     log2_ceil(size_t);
 /* This is NOT a pure function. Not yet. It may halt the program after an invalid argument as I haven't implemented it completely yet. */
-static size_t sizebyte_from(uint8_t);
-static uint8_t sizebyte_to(size_t);
-static size_t strnlen(const char*, size_t);
+static size_t      sizebyte_from(uint8_t);
+static uint8_t     sizebyte_to(size_t);
+static size_t      strnlen(const char*, size_t);
 /* Not properly implemented yet. */
 
 static inline void
@@ -91,16 +93,11 @@ strnlen(const char *s, size_t maxlen)
 	return p ? (size_t)(p - s) : maxlen;
 }
 
-int32_t
-main(void)
+static void
+archive_create(const char *archive_path, const char **file_list, const char **file_correspondences, size_t file_count)
 {
 	FILE *archive_file;
-	const char *archive_path = "./archive1.bar";
-	const char *file_correspondences[] = { "a.txt", "b.txt", NULL };
-	const char *filelist[] = { "./misc/a.txt", "./misc/b.txt", NULL };
-	size_t file_count;
 	size_t filelist_bufsize;
-	for (file_count = 0; filelist[file_count]; ++file_count){}
 	/* I should probably check if the archive path already exists. */
 	{ /* Scoping for archive_file. */
 	archive_file = fopen(archive_path, "w");
@@ -147,18 +144,18 @@ main(void)
 
 	for (size_t i = 0; i < file_count; ++i) {
 		uint8_t *entry_buf;
-		size_t entrybuf_size;
-		uint8_t entrybuf_sizebyte;
-		FILE *file;
+		size_t   entrybuf_size;
+		uint8_t  entrybuf_sizebyte;
+		FILE    *file;
 		uint8_t *file_buf;
-		size_t file_size;
-		size_t filebuf_size;
-		uint8_t filebuf_sizebyte;
+		size_t   file_size;
+		size_t   filebuf_size;
+		uint8_t  filebuf_sizebyte;
 		uint8_t *header_buf;
-		size_t headerbuf_size;
-		uint8_t headerbuf_sizebyte;
-		size_t writerhead;
-		file = fopen(filelist[i], "r");
+		size_t   headerbuf_size;
+		uint8_t  headerbuf_sizebyte;
+		size_t   writerhead;
+		file = fopen(file_list[i], "r");
 		chkz((size_t)file);
 
 		chknz((size_t)fseek(file, 0, SEEK_END));
@@ -223,6 +220,15 @@ main(void)
 
 	(void)fclose(archive_file);
 	}
+}
 
-	return 0;
+int32_t
+main(void)
+{
+	const char *archive_path = "./archive1.bar";
+	const char *file_correspondences[] = { "a.txt", "b.txt", NULL };
+	size_t      file_count;
+	const char *file_list[] = { "./misc/a.txt", "./misc/b.txt", NULL };
+	for (file_count = 0; file_list[file_count]; ++file_count){}
+	archive_create(archive_path, file_list, file_correspondences, file_count);
 }

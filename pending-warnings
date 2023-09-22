@@ -1,52 +1,55 @@
-main.c:99:14: warning: 'file_correspondences' is an unsafe buffer that does not perform bounds checks [-Wunsafe-buffer-usage]
-        const char *file_correspondences[] = { "a.txt", "b.txt", NULL };
-        ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-main.c:118:31: note: used in buffer access here
+main.c:95:55: warning: 'file_list' is an unsafe pointer used for buffer access [-Wunsafe-buffer-usage]
+archive_create(const char *archive_path, const char **file_list, const char **file_correspondences, size_t file_count)
+                                         ~~~~~~~~~~~~~^~~~~~~~~
+main.c:156:16: note: used in buffer access here
+                file = fopen(file_list[i], "r");
+                             ^~~~~~~~~
+main.c:95:79: warning: 'file_correspondences' is an unsafe pointer used for buffer access [-Wunsafe-buffer-usage]
+archive_create(const char *archive_path, const char **file_list, const char **file_correspondences, size_t file_count)
+                                                                 ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+main.c:113:31: note: used in buffer access here
                 filelist_bufsize += strnlen(file_correspondences[i], FILENAME_MAX) + 1;
                                             ^~~~~~~~~~~~~~~~~~~~
-main.c:134:34: note: used in buffer access here
-                size_t filename_size = strnlen(file_correspondences[i], FILENAME_MAX);
-                                               ^~~~~~~~~~~~~~~~~~~~
-main.c:135:47: note: used in buffer access here
+main.c:130:47: note: used in buffer access here
                 void *a = memcpy(filelist_buf + writerhead, file_correspondences[i], filename_size);
                                                             ^~~~~~~~~~~~~~~~~~~~
-main.c:100:14: warning: 'filelist' is an unsafe buffer that does not perform bounds checks [-Wunsafe-buffer-usage]
-        const char *filelist[] = { "./misc/a.txt", "./misc/b.txt", NULL };
-        ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-main.c:103:23: note: used in buffer access here
-        for (file_count = 0; filelist[file_count]; ++file_count){}
-                             ^~~~~~~~
-main.c:161:16: note: used in buffer access here
-                file = fopen(filelist[i], "r");
-                             ^~~~~~~~
-main.c:129:8: warning: 'filelist_buf' is an unsafe pointer used for buffer access [-Wunsafe-buffer-usage]
+main.c:129:34: note: used in buffer access here
+                size_t filename_size = strnlen(file_correspondences[i], FILENAME_MAX);
+                                               ^~~~~~~~~~~~~~~~~~~~
+main.c:124:8: warning: 'filelist_buf' is an unsafe pointer used for buffer access [-Wunsafe-buffer-usage]
         char *filelist_buf = calloc(filelist_bufsize, 1);
         ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-main.c:136:15: note: used in pointer arithmetic here
-                assert(a == filelist_buf + writerhead);
-                            ^~~~~~~~~~~~
-main.c:135:20: note: used in pointer arithmetic here
+main.c:130:20: note: used in pointer arithmetic here
                 void *a = memcpy(filelist_buf + writerhead, file_correspondences[i], filename_size);
                                  ^~~~~~~~~~~~
-main.c:149:12: warning: 'entry_buf' is an unsafe pointer used for buffer access [-Wunsafe-buffer-usage]
+main.c:131:15: note: used in pointer arithmetic here
+                assert(a == filelist_buf + writerhead);
+                            ^~~~~~~~~~~~
+main.c:144:12: warning: 'entry_buf' is an unsafe pointer used for buffer access [-Wunsafe-buffer-usage]
                 uint8_t *entry_buf;
                 ~~~~~~~~~^~~~~~~~~
-main.c:206:14: note: used in pointer arithmetic here
+main.c:201:14: note: used in pointer arithmetic here
                 a = memcpy(entry_buf + writerhead, header_buf, headerbuf_size);
                            ^~~~~~~~~
-main.c:207:15: note: used in pointer arithmetic here
+main.c:202:15: note: used in pointer arithmetic here
                 assert(a == entry_buf + writerhead);
                             ^~~~~~~~~
-main.c:209:14: note: used in pointer arithmetic here
+main.c:204:14: note: used in pointer arithmetic here
                 a = memcpy(entry_buf + writerhead, file_buf, filebuf_size);
                            ^~~~~~~~~
-main.c:210:15: note: used in pointer arithmetic here
+main.c:205:15: note: used in pointer arithmetic here
                 assert(a == entry_buf + writerhead);
                             ^~~~~~~~~
-main.c:153:12: warning: 'file_buf' is an unsafe pointer used for buffer access [-Wunsafe-buffer-usage]
+main.c:148:12: warning: 'file_buf' is an unsafe pointer used for buffer access [-Wunsafe-buffer-usage]
                 uint8_t *file_buf;
                 ~~~~~~~~~^~~~~~~~
-main.c:193:21: note: used in pointer arithmetic here
+main.c:188:21: note: used in pointer arithmetic here
                         size_t a = fread(file_buf + writerhead, 1, file_size, file);
                                          ^~~~~~~~
-5 warnings generated.
+main.c:229:14: warning: 'file_list' is an unsafe buffer that does not perform bounds checks [-Wunsafe-buffer-usage]
+        const char *file_list[] = { "./misc/a.txt", "./misc/b.txt", NULL };
+        ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+main.c:230:23: note: used in buffer access here
+        for (file_count = 0; file_list[file_count]; ++file_count){}
+                             ^~~~~~~~~
+6 warnings generated.
